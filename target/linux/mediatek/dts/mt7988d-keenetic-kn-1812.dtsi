@@ -170,7 +170,7 @@
 
 		mediatek,nmbm;
 		mediatek,bmt-max-ratio = <1>;
-		mediatek,bmt-max-reserved-blocks = <256>;
+		mediatek,bmt-max-reserved-blocks = <64>;
 
 		partitions {
 			compatible = "fixed-partitions";
@@ -607,5 +607,9 @@
 };
 
 &tphy {
+	status = "okay";
+};
+
+&xsphy {
 	status = "okay";
 };

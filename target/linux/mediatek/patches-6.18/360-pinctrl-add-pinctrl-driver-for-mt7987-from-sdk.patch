@@ -12,7 +12,7 @@ Subject: [PATCH] pinctrl: add pinctrl driver for mt7987 from sdk
 
 --- a/drivers/pinctrl/mediatek/Kconfig
 +++ b/drivers/pinctrl/mediatek/Kconfig
-@@ -212,6 +212,13 @@ config PINCTRL_MT7986
+@@ -222,6 +222,13 @@ config PINCTRL_MT7986
  	default ARM64 && ARCH_MEDIATEK
  	select PINCTRL_MTK_MOORE
  

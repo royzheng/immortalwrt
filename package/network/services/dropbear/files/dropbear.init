@@ -171,6 +171,7 @@ validate_section_dropbear()
 	uci_load_validate dropbear dropbear "$1" "$2" \
 		'PasswordAuth:bool:1' \
 		'enable:bool:1' \
+		'enableIPQoS:bool:1' \
 		'DirectInterface:string' \
 		'Interface:string' \
 		'GatewayPorts:bool:0' \
@@ -331,6 +332,7 @@ dropbear_instance()
 		fi
 	fi
 	[ "${PasswordAuth}" -eq 0 ] && procd_append_param command -s
+	[ "${enableIPQoS}" -eq 0 ] && procd_append_param command -z
 	[ "${GatewayPorts}" -eq 1 ] && procd_append_param command -a
 	[ "${LocalPortForward}" -eq 0 ] && procd_append_param command -j
 	[ "${RemotePortForward}" -eq 0 ] && procd_append_param command -k

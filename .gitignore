@@ -36,3 +36,15 @@ git-src
 .ccache
 .sccache
 .vscode*
+
+# AIR6 vendor builds produce modules in the source directories.
+/package/mtk/mt7990-wifi/src/**/*.ko
+/package/mtk/mt7990-wifi/src/**/*.cmd
+/package/mtk/mt7990-wifi/src/**/Module.symvers
+/package/mtk/mt7990-wifi/src/**/modules.order
+/build-logs/
+/.env
+/.env.*
+
+# Parent-owned personal overlay, linked by prepare-overlay.sh; never publish it.
+/files

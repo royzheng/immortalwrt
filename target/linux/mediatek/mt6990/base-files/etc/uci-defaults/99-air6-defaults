@@ -1,0 +1,39 @@
+#!/bin/sh
+. /lib/functions.sh
+[ "$(board_name)" = "softbank,air6" ] || exit 0
+uci set system.@system[0].hostname='air6'
+uci set system.@system[0].timezone='<+08>-8'
+uci set system.@system[0].zonename='Asia/Shanghai'
+# SSH DSCP-marked replies can stall after a client rejoins the vendor Wi-Fi.
+# Use Dropbear's own QoS switch; preserve any explicit user choice.
+air6_dropbear_qos_default() {
+    uci -q get "dropbear.$1.enableIPQoS" >/dev/null ||
+        uci set "dropbear.$1.enableIPQoS=0"
+}
+config_load dropbear
+config_foreach air6_dropbear_qos_default dropbear
+uci commit dropbear
+# The vendor HNAT driver owns PPE; do not also enable nft flow offloading.
+uci set firewall.@defaults[0].flow_offloading='0'
+uci set firewall.@defaults[0].flow_offloading_hw='0'
+i=0
+while name="$(uci -q get "firewall.@zone[$i].name")"; do
+    if [ "$name" = wan ]; then
+        # Preserve user zone memberships; add only interfaces that exist.
+        for network in wan wan6 modem5g; do
+            uci -q get "network.$network" >/dev/null || continue
+            uci -q get "firewall.@zone[$i].network" | tr ' ' '\n' | grep -qx "$network" ||
+                uci add_list "firewall.@zone[$i].network=$network"
+        done
+        uci set "firewall.@zone[$i].masq=1"
+        uci set "firewall.@zone[$i].mtu_fix=1"
+    fi
+    i=$((i + 1))
+done
+# Preserve the modem MTU hint without importing a full old dnsmasq config.
+uci -q del_list dhcp.lan.dhcp_option='26,1400'
+uci add_list dhcp.lan.dhcp_option='26,1400'
+uci commit system
+uci commit firewall
+uci commit dhcp
+exit 0

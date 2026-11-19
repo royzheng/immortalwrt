@@ -68,7 +68,7 @@ Signed-off-by: Lorenzo Bianconi <lorenzo@kernel.org>
  		ret = mtk_wed_get_reserved_memory_region(wo->hw, mem_region[i].name,
  							 &mem_region[i]);
  		if (ret)
-@@ -364,17 +381,17 @@ mtk_wed_mcu_load_firmware(struct mtk_wed
+@@ -364,16 +381,16 @@ mtk_wed_mcu_load_firmware(struct mtk_wed
  		boot_cr = MTK_WO_MCU_CFG_LS_WA_BOOT_ADDR_ADDR;
  	else
  		boot_cr = MTK_WO_MCU_CFG_LS_WM_BOOT_ADDR_ADDR;

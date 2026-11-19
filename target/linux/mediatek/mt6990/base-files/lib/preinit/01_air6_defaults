@@ -1,0 +1,4 @@
+# MT6990/AIR6 recovery address; retain the upstream preinit implementation.
+pi_ip="10.10.10.1"
+pi_netmask="255.255.255.0"
+pi_broadcast="10.10.10.255"

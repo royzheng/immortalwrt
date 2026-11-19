@@ -44,14 +44,14 @@ to be resolved by the platform bootloader (e.g. U-Boot), see
 
 Signed-off-by: Jakub Vaněk <linuxtardis@gmail.com>
 ---
- drivers/net/phy/motorcomm.c | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ drivers/net/phy/motorcomm.c | 31 +++++++++++++++++++++++++++++--
+ 1 file changed, 29 insertions(+), 2 deletions(-)
 
 --- a/drivers/net/phy/motorcomm.c
 +++ b/drivers/net/phy/motorcomm.c
-@@ -254,6 +254,9 @@
- #define YT8522_RXDV_SEL				BIT(4)
- #define YT8522_RMII_EN				BIT(1)
+@@ -228,6 +228,9 @@
+ #define YT8521_LED_100_ON_EN			BIT(5)
+ #define YT8521_LED_10_ON_EN			BIT(4)
  
 +#define YTPHY_MDIO_ADDRESS_CONTROL_REG		0xA005
 +#define YTPHY_MACR_EN_PHY_ADDR_0		BIT(6)
@@ -59,26 +59,40 @@ Signed-off-by: Jakub Vaněk <linuxtardis@gmail.com>
  #define YTPHY_MISC_CONFIG_REG			0xA006
  #define YTPHY_MCR_FIBER_SPEED_MASK		BIT(0)
  #define YTPHY_MCR_FIBER_1000BX			(0x1 << 0)
-@@ -3917,6 +3920,23 @@ static int yt8821_config_init(struct phy
+@@ -2777,6 +2780,37 @@ static int yt8821_config_init(struct phy
  	int ret;
  	u16 set;
  
-+	/* Hard-reset the PHY to clear out any register corruption
-+	 * from preceding MDIO bus conflicts.
++	/* This workaround is specific to boards where a YT8821 initially
++	 * collides with another PHY at MDIO address 0. MT6990 has no SDK or
++	 * board evidence for that topology, so allow it to use the unmodified
++	 * upstream YT8821 initialization path.
 +	 */
-+	phy_device_reset(phydev, 1);
++	if (!of_property_read_bool(phydev->mdio.dev.of_node,
++				   "motorcomm,skip-mdio-address-zero-workaround")) {
++	/* Hard-reset the PHY to clear out any register corruption from
++	 * preceding MDIO bus conflicts. Some platforms perform the required
++	 * hardware reset in their board power sequence and must not reset the
++	 * PHY again whenever phylink reattaches it.
++	 */
++	if (!of_property_read_bool(phydev->mdio.dev.of_node,
++				   "motorcomm,skip-config-init-hard-reset"))
++		phy_device_reset(phydev, 1);
 +
 +	/* Deassert the reset GPIO under the MDIO bus lock to make
 +	 * sure that nothing will communicate on the bus until we
 +	 * disable the broadcast address in the YT8821.
 +	 */
 +	phy_lock_mdio_bus(phydev);
-+	phy_device_reset(phydev, 0);
++	if (!of_property_read_bool(phydev->mdio.dev.of_node,
++				   "motorcomm,skip-config-init-hard-reset"))
++		phy_device_reset(phydev, 0);
 +	ret = ytphy_modify_ext(phydev,
 +			       YTPHY_MDIO_ADDRESS_CONTROL_REG,
 +			       YTPHY_MACR_EN_PHY_ADDR_0,
 +			       0);
 +	phy_unlock_mdio_bus(phydev);
++	}
 +
  	if (phydev->interface == PHY_INTERFACE_MODE_2500BASEX)
  		mode = YT8821_CHIP_MODE_FORCE_BX2500;

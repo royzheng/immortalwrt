@@ -25,7 +25,7 @@ DEFAULT_PACKAGES:=\
 	fstools \
 	libc \
 	libgcc \
-	libustream-openssl \
+	libustream-mbedtls \
 	logd \
 	mtd \
 	netifd \
@@ -50,7 +50,7 @@ DEFAULT_PACKAGES.nas:=\
 # @brief Default packages for @DEVICE_TYPE router.
 ##
 DEFAULT_PACKAGES.router:=\
-	dnsmasq-full \
+	dnsmasq \
 	firewall4 \
 	nftables \
 	kmod-nft-offload \
@@ -58,14 +58,6 @@ DEFAULT_PACKAGES.router:=\
 	odhcpd-ipv6only \
 	ppp \
 	ppp-mod-pppoe
-# For easy usage
-DEFAULT_PACKAGES.tweak:=\
-	autocore \
-	block-mount \
-	default-settings-chn \
-	kmod-nf-nathelper \
-	luci \
-	luci-app-cpufreq
 
 ifneq ($(DUMP),)
   all: dumpinfo
@@ -103,16 +95,8 @@ ifeq ($(filter small_flash,$(FEATURES)),)
   DEFAULT_PACKAGES+=procd-ujail
 endif
 
-# legacy-sdcard upgrades need partx after writing the full image
-ifneq ($(filter legacy-sdcard,$(FEATURES)),)
-  DEFAULT_PACKAGES+=partx-utils
-endif
-
 # Add device specific packages (here below to allow device type set from subtarget)
 DEFAULT_PACKAGES += $(DEFAULT_PACKAGES.$(DEVICE_TYPE))
-
-# Add tweaked packages
-# DEFAULT_PACKAGES += $(DEFAULT_PACKAGES.tweak)
 
 ##@
 # @brief Filter out packages, prepended with `-`.
@@ -254,15 +238,6 @@ ifeq ($(DUMP),1)
   endif
   ifneq ($(findstring arm,$(ARCH)),)
     CPU_TYPE ?= xscale
-    ifneq ($(filter arm1136j-s arm1136jf-s arm1156t2-s,$(CPU_TYPE)),)
-      FEATURES += arm_v6
-    endif
-    ifneq ($(filter arm1176jz-s arm1176jzf-s mpcore mpcorenovfp,$(CPU_TYPE)),)
-      FEATURES += arm_v6k
-    endif
-    ifneq ($(filter cortex-a% generic-armv7-a marvell-pj4,$(CPU_TYPE)),)
-      FEATURES += arm_v7
-    endif
   endif
   ifeq ($(ARCH),powerpc)
     CPU_CFLAGS_603e:=-mcpu=603e
@@ -281,8 +256,7 @@ ifeq ($(DUMP),1)
     CPU_TYPE ?= generic
     CPU_CFLAGS_generic = -mcpu=generic
     CPU_CFLAGS_cortex-a53 = -mcpu=cortex-a53
-    CPU_CFLAGS_cortex-a72 = -mcpu=cortex-a72
-    CPU_CFLAGS_cortex-a76 = -mcpu=cortex-a76
+    CPU_CFLAGS_cortex-a55 = -mcpu=cortex-a55
   endif
   ifeq ($(ARCH),riscv64)
     CPU_TYPE ?= generic
@@ -316,7 +290,7 @@ ifeq ($(DUMP),1)
     ifneq ($(CONFIG_OF),)
       FEATURES += dt
     endif
-    ifneq ($(CONFIG_GPIOLIB),)
+    ifneq ($(CONFIG_GENERIC_GPIO)$(CONFIG_GPIOLIB),)
       FEATURES += gpio
     endif
     ifneq ($(CONFIG_PCI),)
@@ -345,6 +319,9 @@ ifeq ($(DUMP),1)
     ifneq ($(CONFIG_PCMCIA)$(CONFIG_PCCARD),)
       FEATURES += pcmcia
     endif
+    ifneq ($(CONFIG_VGA_CONSOLE)$(CONFIG_FB),)
+      FEATURES += display
+    endif
     ifneq ($(CONFIG_RTC_CLASS),)
       FEATURES += rtc
     endif
@@ -353,6 +330,15 @@ ifeq ($(DUMP),1)
     endif
     ifneq ($(CONFIG_CPU_MIPS32_R2),)
       FEATURES += mips16
+    endif
+    ifneq ($(CONFIG_CPU_V6),)
+      FEATURES += arm_v6
+    endif
+    ifneq ($(CONFIG_CPU_V6K),)
+      FEATURES += arm_v6
+    endif
+    ifneq ($(CONFIG_CPU_V7),)
+      FEATURES += arm_v7
     endif
 
     # remove duplicates

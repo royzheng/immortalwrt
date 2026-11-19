@@ -5,7 +5,7 @@ include $(TOPDIR)/rules.mk
 ARCH:=arm
 BOARD:=mediatek
 BOARDNAME:=MediaTek ARM
-SUBTARGETS:=filogic mt7622 mt7623 mt7629
+SUBTARGETS:=mt6990 filogic mt7622 mt7623 mt7629
 FEATURES:=dt-overlay emmc fpu gpio nand pci pcie rootfs-part separate_ramdisk squashfs usb
 
 KERNEL_PATCHVER:=6.18

@@ -1,0 +1,47 @@
+The MAP DPP enrollee extension accesses struct wpa_supplicant, which is
+not available to standalone hostapd. Keep it for supplicant/multicall
+builds and leave the AP-side MAP/WPS code enabled.
+
+--- a/src/wps/wps_attr_build.c
++++ b/src/wps/wps_attr_build.c
+@@ -16,7 +16,7 @@
+ #include "crypto/random.h"
+ #include "common/ieee802_11_defs.h"
+ #include "wps_i.h"
+-#ifdef CONFIG_MTK_MAP
++#if defined(CONFIG_MTK_MAP) && !defined(NO_SUPPLICANT)
+ #include "wpa_supplicant_i.h"
+ #endif /* CONFIG_MTK_MAP */
+ 
+@@ -305,7 +305,7 @@
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_MTK_MAP
++#if defined(CONFIG_MTK_MAP) && !defined(NO_SUPPLICANT)
+ int wps_build_dpp_uri(struct wps_data *wps, struct wpabuf *msg)
+ {
+ 	struct wpa_supplicant *wpa = (struct wpa_supplicant *)wps->wps->cb_ctx;
+--- a/src/wps/wps_enrollee.c
++++ b/src/wps/wps_enrollee.c
+@@ -14,8 +14,10 @@
+ #include "crypto/random.h"
+ #include "wps_i.h"
+ #include "wps_dev_attr.h"
++#if defined(CONFIG_MTK_MAP) && !defined(NO_SUPPLICANT)
++#include "wpa_supplicant_i.h"
++#endif
+ #ifdef CONFIG_MTK_MAP
+-#include "wpa_supplicant_i.h"
+ #include "common/wpa_ctrl.h"
+ #endif /* CONFIG_MTK_MAP */
+ 
+@@ -403,7 +405,7 @@
+ 	    wps_build_registrar_nonce(wps, msg) ||
+ 	    wps_build_e_snonce2(wps, plain) ||
+ 	    (wps->wps->ap && wps_build_ap_settings(wps, plain)) ||
+-#if defined(CONFIG_MTK_MAP)
++#if defined(CONFIG_MTK_MAP) && !defined(NO_SUPPLICANT)
+ 	(wps->wps && wps->wps->cb_ctx && wps->multi_ap_backhaul_sta == 1 && ((struct wpa_supplicant *)wps->wps->cb_ctx)->dpp_uri && wps_build_dpp_uri(wps, plain)) ||
+ #endif /* CONFIG_MTK_MAP */
+ 	    wps_build_key_wrap_auth(wps, plain) ||

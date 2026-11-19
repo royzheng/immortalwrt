@@ -77,7 +77,7 @@ define Device/smartrg_sdg-841-t6
   DEVICE_PACKAGES := e2fsprogs f2fsck mkf2fs
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
   DEVICE_MODEL := SDG-841-t6
-  DEVICE_DTS := mt7622-smartrg-sdg-841-t6
+  DEVICE_DTS := mt7622-smartrg-SDG-841-t6
   DEVICE_PACKAGES += kmod-mt7915e kmod-mt7915-firmware
 endef
 TARGET_DEVICES += smartrg_sdg-841-t6
@@ -111,11 +111,11 @@ define Device/bananapi_bpi-r64
 				$(if $(CONFIG_TARGET_ROOTFS_SQUASHFS), \
 				   pad-to 46080k | append-image squashfs-sysupgrade.itb | check-size |\
 				) \
-				  libdeflate-gzip
+				  gzip
 ifeq ($(DUMP),)
   IMAGE_SIZE := $$(shell expr 45 + $$(CONFIG_TARGET_ROOTFS_PARTSIZE))m
 endif
-  KERNEL			:= kernel-bin | libdeflate-gzip
+  KERNEL			:= kernel-bin | gzip
   KERNEL_INITRAMFS		:= kernel-bin | lzma | fit lzma $$(DTS_DIR)/$$(DEVICE_DTS).dtb with-initrd | pad-to 128k
   IMAGE/sysupgrade.itb		:= append-kernel | fit gzip $$(DTS_DIR)/$$(DEVICE_DTS).dtb external-static-with-rootfs | append-metadata
   DEVICE_COMPAT_VERSION := 1.2
@@ -155,11 +155,9 @@ define Device/buffalo_wsr-2533dhp2
   IMAGE_SIZE := 59392k
   SUBPAGESIZE := 512
   BUFFALO_TRX_MAGIC := 0x32504844
-  DEVICE_PACKAGES := kmod-mt7615-firmware kmod-dsa-rtl8365mb
-  DEVICE_COMPAT_VERSION := 1.2
-  DEVICE_COMPAT_MESSAGE := Config cannot be migrated from swconfig to DSA. \
-	If upgrading from an older build, the partition table may also have \
-	changed due to kernel size restrictions. \
+  DEVICE_PACKAGES := kmod-mt7615-firmware swconfig
+  DEVICE_COMPAT_VERSION := 1.1
+  DEVICE_COMPAT_MESSAGE := Partition table has been changed due to kernel size restrictions. \
 	Please upgrade via sysupgrade with factory-uboot.bin image and '-F' option. \
 	(Warning: your configurations will be erased!)
 endef
@@ -221,9 +219,7 @@ define Device/elecom_wrc-2533gent
   DEVICE_MODEL := WRC-2533GENT
   DEVICE_DTS := mt7622-elecom-wrc-2533gent
   DEVICE_DTS_DIR := ../dts
-  DEVICE_PACKAGES := kmod-btmtkuart kmod-mt7615-firmware kmod-usb3 kmod-dsa-rtl8365mb
-  DEVICE_COMPAT_VERSION := 1.1
-  DEVICE_COMPAT_MESSAGE := Config cannot be migrated from swconfig to DSA.
+  DEVICE_PACKAGES := kmod-btmtkuart kmod-mt7615-firmware kmod-usb3 swconfig
 endef
 TARGET_DEVICES += elecom_wrc-2533gent
 
@@ -288,7 +284,7 @@ define Device/linksys_e8450-ubi
   PAGESIZE := 2048
   UBOOTENV_IN_UBI := 1
   KERNEL_IN_UBI := 1
-  KERNEL := kernel-bin | libdeflate-gzip
+  KERNEL := kernel-bin | gzip
 # recovery can also be used with stock firmware web-ui, hence the padding...
   KERNEL_INITRAMFS := kernel-bin | lzma | \
 	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 128k
@@ -337,6 +333,7 @@ endef
 TARGET_DEVICES += mediatek_mt7622-rfb1-ubi
 
 define Device/netgear_wax206
+  $(Device/dsa-migration)
   DEVICE_VENDOR := NETGEAR
   DEVICE_MODEL := WAX206
   DEVICE_DTS := mt7622-netgear-wax206
@@ -385,43 +382,10 @@ define Device/totolink_a8000ru
   DEVICE_MODEL := A8000RU
   DEVICE_DTS := mt7622-totolink-a8000ru
   DEVICE_DTS_DIR := ../dts
-  DEVICE_PACKAGES := kmod-mt7615-firmware kmod-usb3 kmod-dsa-rtl8365mb
+  DEVICE_PACKAGES := kmod-mt7615-firmware kmod-usb3 swconfig
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
-  DEVICE_COMPAT_VERSION := 1.1
-  DEVICE_COMPAT_MESSAGE := Config cannot be migrated from swconfig to DSA.
 endef
 TARGET_DEVICES += totolink_a8000ru
-
-define Device/tplink_tl-xdr-common
-  DEVICE_VENDOR := TP-Link
-  DEVICE_DTS_DIR := ../dts
-  DEVICE_PACKAGES := kmod-mt7915-firmware kmod-dsa-rtl8365mb
-  KERNEL := kernel-bin | lzma
-  KERNEL_INITRAMFS_SUFFIX := -recovery.itb
-  KERNEL_INITRAMFS := kernel-bin | lzma | \
-	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
-  IMAGES := sysupgrade.itb
-  IMAGE/sysupgrade.itb := append-kernel | \
-	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb external-static-with-rootfs | pad-rootfs | append-metadata
-  DEVICE_COMPAT_VERSION := 1.1
-  DEVICE_COMPAT_MESSAGE := Config cannot be migrated from swconfig to DSA.
-endef
-
-define Device/tplink_tl-xdr3230-v1
-  DEVICE_MODEL := TL-XDR3230
-  DEVICE_VARIANT := v1
-  DEVICE_DTS := mt7622-tplink-tl-xdr3230-v1
-  $(call Device/tplink_tl-xdr-common)
-endef
-TARGET_DEVICES += tplink_tl-xdr3230-v1
-
-define Device/tplink_tl-xdr3250-v1
-  DEVICE_MODEL := TL-XDR3250
-  DEVICE_VARIANT := v1
-  DEVICE_DTS := mt7622-tplink-tl-xdr3250-v1
-  $(call Device/tplink_tl-xdr-common)
-endef
-TARGET_DEVICES += tplink_tl-xdr3250-v1
 
 define Device/ubnt_unifi-6-lr-v1
   DEVICE_VENDOR := Ubiquiti
@@ -524,7 +488,7 @@ define Device/xiaomi_redmi-router-ax6s
   UBINIZE_OPTS := -E 5
   BLOCKSIZE := 128k
   PAGESIZE := 2048
-  KERNEL := kernel-bin | libdeflate-gzip
+  KERNEL := kernel-bin | gzip
   KERNEL_INITRAMFS := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
   KERNEL_INITRAMFS_SUFFIX := -recovery.itb
   IMAGES := sysupgrade.itb

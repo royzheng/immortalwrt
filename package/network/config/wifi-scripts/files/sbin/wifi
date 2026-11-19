@@ -64,7 +64,11 @@ wifi_detect_notice() {
 wifi_config() {
 	ucode /usr/share/hostap/wifi-detect.uc
 	[ ! -f /etc/config/wireless ] && touch /etc/config/wireless
-	ucode /lib/wifi/mac80211.uc | uci -q batch
+	# Air 6: the MT7990 vendor stack owns these radios. The generic mac80211
+	# generator enumerates the same phys and appends phantom radioN sections.
+	if [ ! -f /etc/wireless/l1profile.dat ]; then
+		ucode /lib/wifi/mac80211.uc | uci -q batch
+	fi
 
 	for driver in $DRIVERS; do (
 		if eval "type detect_$driver" 2>/dev/null >/dev/null; then
