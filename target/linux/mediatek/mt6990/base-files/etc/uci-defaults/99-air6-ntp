@@ -1,0 +1,12 @@
+#!/bin/sh
+. /lib/functions.sh
+[ "$(board_name)" = 'softbank,air6' ] || exit 0
+[ "$(uci -q get system.ntp.server)" = 'time.apple.com time1.google.com time.cloudflare.com pool.ntp.org' ] || exit 0
+
+servers="$(jsonfilter -i /etc/board.json -e '@.system.ntpserver[*]')"
+[ -n "$servers" ] || exit 1
+uci -q delete system.ntp.server
+for server in $servers; do
+	uci add_list "system.ntp.server=$server"
+done
+uci commit system

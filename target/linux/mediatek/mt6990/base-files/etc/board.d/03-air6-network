@@ -19,6 +19,7 @@ softbank,air6)
 	# switch setup (VLAN1 / VLAN2). Factory data in raw1: mac0 is the MAC the stock firmware uses on br-lan,
 	# mac1 the one its default network script gives to wan.
 	# Keep DSA device names. Chassis LAN1=lan (WAN), LAN2=wan (LAN).
+	ucidef_set_ntpserver ntp1.aliyun.com ntp.tencent.com ntp.ntsc.ac.cn time.apple.com
 	ucidef_set_interfaces_lan_wan "wan" "lan"
 	lan_mac="$(air6_raw1_mac mac0)"
 	wan_mac="$(air6_raw1_mac mac1)"
