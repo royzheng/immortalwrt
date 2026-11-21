@@ -1,0 +1,14 @@
+#!/bin/sh
+# uHTTPd splits index_page on whitespace, for both option and list syntax.
+indexes="$(uci -q get uhttpd.main.index_page)" || exit 0
+set -f
+case " $indexes " in
+	*" cpe.html "*) ;;
+	*) exit 0 ;;
+esac
+
+uci delete uhttpd.main.index_page || exit 1
+for index in $indexes; do
+	[ "$index" = cpe.html ] || uci add_list "uhttpd.main.index_page=$index" || exit 1
+done
+uci commit uhttpd

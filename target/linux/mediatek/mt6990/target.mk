@@ -11,4 +11,4 @@ FEATURES+=boot-part ext4 fpu gpio pci pcie rootfs-part rtc squashfs usb usbgadge
 # overlay, mount_root invokes mkfs.f2fs before it can persist configuration.
 # Keep both creation and repair tools in every MT6990 image.
 DEFAULT_PACKAGES += fitblk kmod-usb3 libf2fs mkf2fs f2fsck
-DEFAULT_PACKAGES += air6-cpe-ui
+DEFAULT_PACKAGES += air6-upgrade
